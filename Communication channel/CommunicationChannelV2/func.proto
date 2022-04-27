@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+message Request {
+  int32 methodID = 1;
+  int32 runTime = 2;
+  int32 velocity = 3;
+  int32 acceleration = 4;
+  int32 variable1 = 5;
+  int32 variable2 = 6;
+}
+
+message Response {
+  int32 connVer = 1;
+  int32 encoderData = 2;
+}
+
+service ComChan {
+  rpc SSM (Request) returns (stream Response);
+}
+
+//python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. func.proto
