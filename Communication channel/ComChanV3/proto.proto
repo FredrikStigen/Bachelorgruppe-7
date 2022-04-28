@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+message clientRequest {
+  int32 methodID = 1;
+  int32 velocity = 3;
+  int32 acceleration = 4;
+  int32 variable1 = 5;
+  int32 variable2 = 6;
+}
+
+message serverResponse{
+  string resp = 1;
+  int32 startCount = 2;
+}
+
+message clientStream {
+  int32 counter = 1;
+}
+
+message serverStream {
+  int32 counter = 1;
+  int32 encoder = 2;
+}
+
+service stream {
+  rpc SM (clientRequest) returns (serverResponse);
+  rpc SSM (stream clientStream) returns (serverStream);
+}
+
+//python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. proto.proto
