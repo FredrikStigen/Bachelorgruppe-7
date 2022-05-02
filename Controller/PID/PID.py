@@ -19,9 +19,7 @@ e_prev = 0.0                    #Previous error
 x_n = 0.0                       #PID output
 theta = 0.0                     #Desfired position
 theta_fb = 0.0                  #Feedback position
-temp = 20                       #Initial temp before reading so theta == 0
 
-INTERVAL = 4000                 #Time interval
 
 EncoderA = 23                   #encoder channel A
 EncoderB = 24                   #encoder channel B
@@ -50,16 +48,6 @@ def changeSense(channel, pulsen):
 GPIO.add_event_detect(EncoderA, GPIO.BOTH, callback=changeSense)
 
 while True:
-
-
-
-    lastReading = 0             #Static?
-
-    if time.time() >= lastReading + INTERVAL:
-        lastReading = time.time()
-
-
-
     #PID Controller
     Ts_prev = 0                 #Static
     if time.time() >= Ts_prev + Ts*1000:        #Ts*1000 to get ms, Ts is in seconds

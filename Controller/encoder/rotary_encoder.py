@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import pigpio
 import time
 
@@ -51,19 +49,18 @@ class decoder:
       self.cbA.cancel()
       self.cbB.cancel()
 
+encoderFeedback = 0
+
+def callback(way):
+   global encoderFeedback
+   if encoderFeedback >= 400:
+      encoderFeedback = 0
+   elif encoderFeedback <= 0:
+      encoderFeedback = 400
+   encoderFeedback += way
+   print("pos = {}".format(round(encoderFeedback * 0.9, 3)))
+
 if __name__ == "__main__":
-   pos = 0
-
-   def callback(way):
-      global pos
-      if pos >= 400:
-         pos = 0
-      elif pos <= 0:
-         pos = 400
-      pos += way
-
-      print("pos={}".format(round(pos*0.9, 3)))
-
    pi = pigpio.pi()
 
    decoder = decoder(pi, 5, 6, callback)

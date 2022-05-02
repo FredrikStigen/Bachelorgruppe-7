@@ -1,54 +1,56 @@
-import time
-import matplotlib.pyplot as pls
-
+import matplotlib.pyplot as plt
 import numpy as np
 
-def generate(vel, acc, pos, fs, clk):
-    T = 1/fs
+fs = 1000
+vel = 2 * np.pi / 3
+acc = 6
+pos = 2 * np.pi
+pos_feedback = 0
+clk = 0
 
-    t_acc = vel/acc
-    t_dacc = vel/acc
 
-    acc_dist = (1/2) * acc * t_acc**2
-    dacc_dist = (1/2) * acc * t_dacc**2
+def
+tot_dist = pos - pos_feedback
 
-    t_cons_vel = (pos - (acc_dist + dacc_dist)) / vel
+T = 1 / fs
+dacc = acc
 
+t_acc = vel / acc
+t_dacc = vel / dacc
+
+acc_dist = (1 / 2) * acc * t_acc ** 2
+dacc_dist = (1 / 2) * dacc * t_dacc ** 2
+
+if acc_dist >= tot_dist / 2:
+    acc_dist = tot_dist / 2
+    vel = np.sqrt(2 * acc * acc_dist)
+    t_acc = vel / acc
+    t_tot = 2 * t_acc
+    t1 = np.arange(0.0, t_acc, T)
+    t3 = np.arange(T * len(t1), t_tot, T)
+    pos_a = pos_feedback + (1 / 2 * acc * t1 ** 2)
+    pos_d = (vel * (t3 - t3[0])) + (1 / 2 * -acc * (t3 - t3[0]) ** 2) + pos_a[(len(pos_a) - 1)] + (vel * T)
+    fpos = np.hstack((pos_a, pos_d))
+
+else:
+    t_cons_vel = (tot_dist - (acc_dist + dacc_dist)) / vel
     t_tot = t_acc + t_cons_vel + t_dacc
-
-
     t_acc2 = t_acc + t_cons_vel
 
     # Start + size * step
-    #t1 = 0 + np.arange(round(t_acc/T)) * T
-    t1 = np.arange(0.0, round(t_acc, 2), T)
-    t2 = np.arange(round(T*len(t1), 2), round(t_acc2, 2), T)
-    t3 = np.arange(round(T*(len(t1) + len(t2)), 2), t_tot, T)
-
+    # t1 = 0 + np.arange(round(t_acc/T)) * T
+    t1 = np.arange(0.0, t_acc, T)
+    t2 = np.arange((T * len(t1)), t_acc2, T)
+    t3 = np.arange(T * (len(t1) + len(t2)), t_tot, T)
     t = np.hstack((t1, t2, t3))
+    # print(t1[1:-1])
 
-    pos_a = 1/2 * acc * t1**2
-    pos_c = (vel * (t2 - t2[1])) * pos_a[(len(pos_a)-1)] + (vel * T)
-    pos_d = (vel * (t3 - t3[1])) + (1/2 * -acc * (t3 - t3[1])) + pos_c[(len(pos_c)-1)] + (vel * T)
+    pos_a = pos_feedback + (1 / 2 * acc * t1 ** 2)
+    pos_c = (vel * (t2 - t2[0])) + pos_a[(len(pos_a) - 1)] + (vel * T)
+    pos_d = (vel * (t3 - t3[0])) + (1 / 2 * -acc * (t3 - t3[0]) ** 2) + pos_c[(len(pos_c) - 1)] + (vel * T)
     fpos = np.hstack((pos_a, pos_c, pos_d))
 
-    print(pos_a[0], " : ", pos_a[len(pos_a)-1])
-    print(pos_c[0], " : ", pos_c[len(pos_c)-1])
-    print(pos_d[0], " : ", pos_d[len(pos_d)-1])
+plt.plot(fpos, "o", markersize=1)
+plt.grid()
+plt.show()
 
-    x = 1+round(clk/T)
-
-    if x >= len(fpos):
-        x = len(fpos)
-
-    pos1 = fpos[x-1]
-
-    if pos1 >= pos:
-        pos1 = pos
-
-    timer = np.arange(0, len(t2), 1)
-    #plt.plot(t, fpos)
-    #plt.show()
-
-
-generate((2/3)*np.pi, 6, np.pi, 100, time.time())
