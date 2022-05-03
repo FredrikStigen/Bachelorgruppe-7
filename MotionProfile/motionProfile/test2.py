@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import Motion_Profile_AtoB_Test
 
-# evenly sampled time at 200ms intervals
-t = np.arange(0., 5., 0.1)
+a = Motion_Profile_AtoB_Test.motionProfile(2*np.pi/3, 6, 11*np.pi/6)
 
-# red dashes, blue squares and green triangles
-plt.plot(t**1.5, "go", t**2, "ro", t**3, "bo")
-plt.show()
+print(len(a))
+
+for i in range(len(a)):
+    print(a[i])
+

@@ -1,10 +1,7 @@
+import time
 
-
-f = open("position.txt", "w")
-f.write("270")
-f.close()
-
-f = open("position.txt", "r")
-pos = int(f.read())
-print(pos)
-f.close()
+try:
+    print("hello")
+    time.sleep(10)
+except KeyboardInterrupt:
+    pass

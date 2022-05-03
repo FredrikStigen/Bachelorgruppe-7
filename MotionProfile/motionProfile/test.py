@@ -9,7 +9,7 @@ pos_feedback = 0
 clk = 0
 
 
-def
+
 tot_dist = pos - pos_feedback
 
 T = 1 / fs

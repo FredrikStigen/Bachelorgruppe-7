@@ -60,9 +60,9 @@ def callback(way):
 
 
 
-Kp = 4
-Ki = 0.015
-Kd = 0.0
+Kp = 1
+Ki = 0
+Kd = 0
 
 fs = 1000                        #Frequency
 Ts = 1/fs                       #Sample period
@@ -98,9 +98,7 @@ def errorCorrection(theta, theta_fb):
    return abs(round(e, 3))
 
 
-fpos = Motion_Profile_AtoB_Test.motionProfile(3*np.pi/2, 6, np.pi/2)
-#for i in range(len(fpos)):
-#   print(fpos[i])
+fpos = Motion_Profile_AtoB_Test.motionProfile(1, 3, 3*np.pi/2)
 
 timeLast = time.time()
 delay = 0.001
@@ -109,7 +107,7 @@ increment = 0
 clockwisePWM = 12
 counterclockwisePWM = 13
 
-freq = 8000
+freq = 1000
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -121,7 +119,7 @@ CCW_pwm = GPIO.PWM(counterclockwisePWM, freq)
 CW_pwm.start(0)
 CCW_pwm.start(0)
 
-try:
+if __name__ == "__main__":
    pi = pigpio.pi()
 
    decoder = decoder(pi, 5, 6, callback)
@@ -149,8 +147,7 @@ try:
          e = errorCorrection(theta, theta_fb)
 
          x_n = (A * e) + (B * e_prev) + (C * INT_prev)  # PID output calculation
-         if theta_fb <= theta + 0.9 and theta_fb >= theta - 0.9:
-            x_n = 0
+
 
          INT_prev += (0.5 * (e + e_prev) * Ts)
          e_prev = e
@@ -168,9 +165,6 @@ try:
 
       print("Theta: ", theta, "Theta_fb: ", theta_fb, "e: ", e, "clockwise: ", clockwise, "x_n: ", x_n)
 
-except KeyboardInterrupt:
-   CW_pwm.ChangeDutyCycle(0)
-   CCW_pwm.ChangeDutyCycle(0)
+decoder.cancel()
 
-   decoder.cancel()
-   pi.stop()
+pi.stop()

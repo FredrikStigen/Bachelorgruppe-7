@@ -3,7 +3,7 @@ import numpy as np
 
 fs = 1000
 
-pos_feedback = np.pi/2 #encoder data
+pos_feedback = 0 #encoder data
 
 
 def motionProfile(vel, acc, pos):
@@ -78,5 +78,5 @@ def motionProfile(vel, acc, pos):
 
 
 if __name__ == '__main__':
-    a = motionProfile(2*np.pi/3, 6, 11*np.pi/6)
+    a = motionProfile(1, 3, np.pi)
     print(len(a))
