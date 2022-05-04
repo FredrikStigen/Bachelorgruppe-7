@@ -1,33 +1,30 @@
 import grpc
 import proto_pb2
 import proto_pb2_grpc
-import time
 from concurrent import futures
-import sys
+import Motion_Profile_AtoB_Test
+
 
 SERVER_ADDRESS = 'localhost:9999'
 
 class ComChan(proto_pb2_grpc.streamServicer):
     def SM(self, request, context):
         print("Connection attempt from client:")
-        print(request.methodID)
-        print(request.velocity)
-        print(request.acceleration)
-        print(request.variable1)
+        #print(request.methodID)
+        #print(request.velocity)
+        #print(request.acceleration)
+        #print(request.variable1)
         print(request.variable2)
+        if request.methodID == 123:
+            Motion_Profile_AtoB_Test.motionProfile(request.velocity,
+                                                   request.acceleration,
+                                                   request.variable1)
 
-        response = proto_pb2.serverResponse(resp="Methode received, use the following counter to start: ",
-                                            startCount=1)
+
+        run = 4
+        data = 180
+        response = proto_pb2.serverResponse(runTime=run, eData=data)
         return response
-
-    def SSM(self, request_iterator, context):
-        for response in request_iterator:
-            print(response.counter)
-
-
-
-
-
 def main():
     server = grpc.server(futures.ThreadPoolExecutor())
     proto_pb2_grpc.add_streamServicer_to_server(ComChan(), server)

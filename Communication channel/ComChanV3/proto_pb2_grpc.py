@@ -19,23 +19,12 @@ class streamStub(object):
                 request_serializer=proto__pb2.clientRequest.SerializeToString,
                 response_deserializer=proto__pb2.serverResponse.FromString,
                 )
-        self.SSM = channel.stream_unary(
-                '/stream/SSM',
-                request_serializer=proto__pb2.clientStream.SerializeToString,
-                response_deserializer=proto__pb2.serverStream.FromString,
-                )
 
 
 class streamServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def SM(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def SSM(self, request_iterator, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -48,11 +37,6 @@ def add_streamServicer_to_server(servicer, server):
                     servicer.SM,
                     request_deserializer=proto__pb2.clientRequest.FromString,
                     response_serializer=proto__pb2.serverResponse.SerializeToString,
-            ),
-            'SSM': grpc.stream_unary_rpc_method_handler(
-                    servicer.SSM,
-                    request_deserializer=proto__pb2.clientStream.FromString,
-                    response_serializer=proto__pb2.serverStream.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -78,22 +62,5 @@ class stream(object):
         return grpc.experimental.unary_unary(request, target, '/stream/SM',
             proto__pb2.clientRequest.SerializeToString,
             proto__pb2.serverResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def SSM(request_iterator,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.stream_unary(request_iterator, target, '/stream/SSM',
-            proto__pb2.clientStream.SerializeToString,
-            proto__pb2.serverStream.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

@@ -1,27 +1,23 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-fs = 1000
-f = open("position.txt", "r")
-pos_feedback = f.read()
-f.close()
-
 
 def motionProfile(vel, acc, pos):
-    global fs
-    global pos_feedback
+    vel = np.radians(vel)
+    pos = np.radians(pos)
+    fs = 1000
+    f = open("position.txt", "r")
+    pos_feedback = float(f.read())
+    f.close()
+
     if ((pos-pos_feedback+(2*np.pi))%(2*np.pi)<=np.pi):
         clockwise = True
     else:
         clockwise = False
 
-    #print(clockwise)
-
     tot_dist = abs(pos - pos_feedback)
     if tot_dist > np.pi:
         tot_dist = (2*np.pi) - tot_dist
-
-    #print(tot_dist)
 
     T = 1/fs
     dacc = acc
@@ -73,11 +69,12 @@ def motionProfile(vel, acc, pos):
                 fpos[i] -= 2*np.pi
 
     fpos *= 180/np.pi
-    #print(len(fpos))
 
-    return fpos
+    print("Test")
+
+    #return fpos
 
 
-if __name__ == '__main__':
+'''if __name__ == '__main__':
     a = motionProfile(1, 3, np.pi)
-    print(len(a))
+    print(len(a))'''
