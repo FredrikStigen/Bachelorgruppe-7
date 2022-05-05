@@ -60,8 +60,8 @@ def callback(way):
 
 
 
-Kp = 4
-Ki = 0.015
+Kp = 3
+Ki = 0.01
 Kd = 0.0
 
 fs = 1000                        #Frequency
@@ -98,9 +98,9 @@ def errorCorrection(theta, theta_fb):
    return abs(round(e, 3))
 
 
-fpos = Motion_Profile_AtoB_Test.motionProfile(3*np.pi/2, 6, np.pi/2)
+fpos = Motion_Profile_AtoB_Test.motionProfile(3*np.pi/2, 6, 3*np.pi/2)
 #for i in range(len(fpos)):
-#   print(fpos[i])
+   #print(fpos[i])
 
 timeLast = time.time()
 delay = 0.001
@@ -109,7 +109,7 @@ increment = 0
 clockwisePWM = 12
 counterclockwisePWM = 13
 
-freq = 8000
+freq = 1000
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -121,19 +121,24 @@ CCW_pwm = GPIO.PWM(counterclockwisePWM, freq)
 CW_pwm.start(0)
 CCW_pwm.start(0)
 
+
+
 try:
    pi = pigpio.pi()
 
    decoder = decoder(pi, 5, 6, callback)
    time_prev = time.time()
    time_start = time.time()
+
+   printNow = time.time()
+   printDelay = 0.1
    while True:
 
       theta_fb = round(encoderFeedback * 0.9, 3)
 
       Ts_prev = 0  # Static
 
-      if time.time() <= time_prev + T:
+      if time.time() <= time_prev + 0.001:
          time_prev = time.time()
          i = round((time_prev - time_start) / T)
          if i > len(fpos)-1:
@@ -142,7 +147,7 @@ try:
             theta = fpos[i]
 
 
-      if time.time() >= Ts_prev + Ts:  # Ts*1000 to get ms, Ts is in seconds
+      if time.time() >= Ts_prev + 0.00025:  # Ts*1000 to get ms, Ts is in seconds
          Ts_prev = time.time()
 
          #e = theta - theta_fb
@@ -166,7 +171,11 @@ try:
          CW_pwm.ChangeDutyCycle(0)
          CCW_pwm.ChangeDutyCycle(x_n)
 
-      print("Theta: ", theta, "Theta_fb: ", theta_fb, "e: ", e, "clockwise: ", clockwise, "x_n: ", x_n)
+      if time.time() >= printNow + printDelay:
+         printNow = time.time()
+         print("Theta: ", theta, "Theta_fb: ", theta_fb, "e: ", e, "clockwise: ", clockwise, "x_n: ", x_n)
+
+
 
 except KeyboardInterrupt:
    CW_pwm.ChangeDutyCycle(0)

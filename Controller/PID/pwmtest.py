@@ -4,7 +4,7 @@ import time
 clockwisePWM = 12
 counterclockwisePWM = 13
 
-freq = 4000
+freq = 40
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -17,10 +17,10 @@ CW_pwm.start(0)
 CCW_pwm.start(0)
 try:
     while True:
-        CW_pwm.ChangeDutyCycle(50)
-        CCW_pwm.ChangeDutyCycle(50)
+        CW_pwm.ChangeDutyCycle(0)
+        CCW_pwm.ChangeDutyCycle(0)
 except KeyboardInterrupt:
         pass
 CW_pwm.stop()
 CCW_pwm.stop()
-GPIO.cleanup()
+#GPIO.cleanup()
