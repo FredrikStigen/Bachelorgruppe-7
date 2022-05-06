@@ -10,8 +10,8 @@ def PID_Controller(vel, acc, pos, run=True):
     fpos = Motion_Profile_AtoB_Test.motionProfile(vel, acc, pos)
     i = 0
     while run == True:
-        if i >= 200000000:
-            print("Loop has run 200 000 000 times")
+        if i >= 100000000:
+            print("Loop has run 100 000 000 times")
             run = False
         i += 1
 

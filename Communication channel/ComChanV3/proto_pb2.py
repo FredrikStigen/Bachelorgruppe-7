@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0bproto.proto\"o\n\rclientRequest\x12\x10\n\x08methodID\x18\x01 \x01(\x05\x12\x10\n\x08velocity\x18\x03 \x01(\x05\x12\x14\n\x0c\x61\x63\x63\x65leration\x18\x04 \x01(\x05\x12\x11\n\tvariable1\x18\x05 \x01(\x05\x12\x11\n\tvariable2\x18\x06 \x01(\x05\"0\n\x0eserverResponse\x12\x0f\n\x07runTime\x18\x01 \x01(\x05\x12\r\n\x05\x65\x44\x61ta\x18\x02 \x01(\x05\x32/\n\x06stream\x12%\n\x02SM\x12\x0e.clientRequest\x1a\x0f.serverResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0bproto.proto\"|\n\rclientRequest\x12\x10\n\x08methodID\x18\x01 \x01(\x05\x12\x0b\n\x03run\x18\x02 \x01(\x08\x12\x10\n\x08velocity\x18\x03 \x01(\x05\x12\x14\n\x0c\x61\x63\x63\x65leration\x18\x04 \x01(\x05\x12\x11\n\tvariable1\x18\x05 \x01(\x05\x12\x11\n\tvariable2\x18\x06 \x01(\x05\"0\n\x0eserverResponse\x12\x0f\n\x07runTime\x18\x01 \x01(\x05\x12\r\n\x05\x65\x44\x61ta\x18\x02 \x01(\x05\x32/\n\x06stream\x12%\n\x02SM\x12\x0e.clientRequest\x1a\x0f.serverResponseb\x06proto3')
 
 
 
@@ -39,9 +39,9 @@ if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
   _CLIENTREQUEST._serialized_start=15
-  _CLIENTREQUEST._serialized_end=126
-  _SERVERRESPONSE._serialized_start=128
-  _SERVERRESPONSE._serialized_end=176
-  _STREAM._serialized_start=178
-  _STREAM._serialized_end=225
+  _CLIENTREQUEST._serialized_end=139
+  _SERVERRESPONSE._serialized_start=141
+  _SERVERRESPONSE._serialized_end=189
+  _STREAM._serialized_start=191
+  _STREAM._serialized_end=238
 # @@protoc_insertion_point(module_scope)

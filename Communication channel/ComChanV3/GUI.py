@@ -32,19 +32,20 @@ window = sg.Window("OMS Control GUI", layout, resizable=True)
 while True:
     event, values = window.read()
     if event in (sg.WIN_CLOSED, 'Cancel'):
+        client.values(int(0), False, int(0), int(0), int(0))
         break
     elif event in "Stop":
-        print("Stopping...")
+        client.values(int(0), False, int(0), int(0), int(0))
     elif event in "Run":
         #print("Velocity: {}  --  Acceleartion: {}".format(values[2], values[3]))
         if values[5]:
             #print("Rotating to pos: {}".format(values[6]))
-            client.values(int(123), int(values[2]), int(values[3]), int(values[6]))
+            client.values(int(123), True, int(values[2]), int(values[3]), int(values[6]))
         elif values[7]:
-            client.values(int(456), int(values[2]), int(values[3]), int(values[8]), int(values[9]))
+            client.values(int(456), True, int(values[2]), int(values[3]), int(values[8]), int(values[9]))
         elif values[10]:
             #print("Rotating {} degrees, then wait for {} seconds".format(values[11], values[12]))
-            client.values(int(789), int(values[2]), int(values[3]), int(values[11]), int(values[12]))
+            client.values(int(789), True, int(values[2]), int(values[3]), int(values[11]), int(values[12]))
 
 
 

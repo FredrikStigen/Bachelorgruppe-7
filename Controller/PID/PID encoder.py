@@ -4,7 +4,8 @@ import numpy as np
 import RPi.GPIO as GPIO
 import Motion_Profile_AtoB_Test
 
-
+####################################################
+#Klasse for Raspberry Pi for definering av encoder
 class decoder:
    def __init__(self, pi, gpioA, gpioB, callback):
 
@@ -46,9 +47,15 @@ class decoder:
    def cancel(self):
       self.cbA.cancel()
       self.cbB.cancel()
+##############################################################
 
+######################
+#Definere position
 encoderFeedback = 0
+######################
 
+################################
+#Encoder interrupt
 def callback(way):
    global encoderFeedback
    if encoderFeedback >= 400:
@@ -56,7 +63,7 @@ def callback(way):
    elif encoderFeedback <= 0:
       encoderFeedback = 400
    encoderFeedback += way
-
+################################
 
 
 
@@ -66,39 +73,40 @@ Kd = 0.0
 
 fs = 1000                        #Frequency
 Ts = 1/fs                       #Sample period
-
 A = Kp + (0.5*Ki*Ts) + (Kd/Ts)
 B = (0.5*Ki*Ts) - (Kd/Ts)
 C = Ki
-
 INT_prev = 0.0
-
-#e = 0.0                         #Error
 e_prev = 0.0                    #Previous error
 x_n = 0.0                       #PID output
 theta = 90.0                     #Desfired position
-#theta_fb = 360      #Feedback position
-
 T = 1/fs                   #Samplid tid i motion profil
 
 clockwise = True                  #Defines the direction of the motor
 
+###############################################
+#Definerer hvilken retning systemet skal rotere
 def dir(theta, theta_fb):
    global clockwise
    if ((theta - theta_fb + 360) % 360 <= 180):
       clockwise = True
    else:
       clockwise = False
+###############################################
 
-
+#####################################
+#Korrigerer error for å finne korteste vei
 def errorCorrection(theta, theta_fb):
    e = theta - theta_fb
    if abs(e) > 180:
       e = 360 - abs(e)
    return abs(round(e, 3))
+#####################################
 
-
-fpos = Motion_Profile_AtoB_Test.motionProfile(3*np.pi/2, 6, 3*np.pi/2)
+####################################################################
+#Generering av motion profil vector
+fpos = Motion_Profile_AtoB_Test.motionProfile(3*np.pi/2, 6, np.pi/2)
+####################################################################
 #for i in range(len(fpos)):
    #print(fpos[i])
 
@@ -106,6 +114,8 @@ timeLast = time.time()
 delay = 0.001
 increment = 0
 
+#####################################################
+#Oppset av PWM
 clockwisePWM = 12
 counterclockwisePWM = 13
 
@@ -120,8 +130,7 @@ CW_pwm = GPIO.PWM(clockwisePWM, freq)
 CCW_pwm = GPIO.PWM(counterclockwisePWM, freq)
 CW_pwm.start(0)
 CCW_pwm.start(0)
-
-
+####################################################
 
 try:
    pi = pigpio.pi()
@@ -133,11 +142,11 @@ try:
    printNow = time.time()
    printDelay = 0.1
    while True:
-
       theta_fb = round(encoderFeedback * 0.9, 3)
-
       Ts_prev = 0  # Static
 
+      ################################################################
+      #Hvor ofte nye posisjoner skal sendes ut fra motion profilen
       if time.time() <= time_prev + 0.001:
          time_prev = time.time()
          i = round((time_prev - time_start) / T)
@@ -145,12 +154,12 @@ try:
             theta = fpos[len(fpos)-1]
          else:
             theta = fpos[i]
+      ################################################################
 
-
-      if time.time() >= Ts_prev + 0.00025:  # Ts*1000 to get ms, Ts is in seconds
+      ################################################################
+      #Hvor ofte nye x_n verdier skal bli endret
+      if time.time() >= Ts_prev + 0.00025:
          Ts_prev = time.time()
-
-         #e = theta - theta_fb
          e = errorCorrection(theta, theta_fb)
 
          x_n = (A * e) + (B * e_prev) + (C * INT_prev)  # PID output calculation
@@ -161,19 +170,28 @@ try:
          e_prev = e
 
          dir(theta, theta_fb)
+      ################################################################
 
+      ################################################################
+      #Regulere output'en, slik at x_n aldri går over 100%
       if x_n > 100:
          x_n = 100
+      ################################################################
+
+      ################################################################
+      #Korrigere hvilken retning motoren skal snurre
       if clockwise == True:
          CW_pwm.ChangeDutyCycle(x_n)
          CCW_pwm.ChangeDutyCycle(0)
       else:
          CW_pwm.ChangeDutyCycle(0)
          CCW_pwm.ChangeDutyCycle(x_n)
-
+      ################################################################
+      #Hvor fote en visuel fremstilling av verdier skal printes
       if time.time() >= printNow + printDelay:
          printNow = time.time()
-         print("Theta: ", theta, "Theta_fb: ", theta_fb, "e: ", e, "clockwise: ", clockwise, "x_n: ", x_n)
+         print("Theta: ", round(theta, 2), "Theta_fb: ", round(theta_fb,2 ), "e: ", round(e, 2), "clockwise: ", clockwise, "x_n: ", x_n)
+      ################################################################
 
 
 

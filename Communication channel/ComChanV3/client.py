@@ -7,7 +7,7 @@ import time
 SERVER_ADDRESS = 'localhost:9999'
 PIADDRESS = '169.254.165.33:9999'
 
-def values(method, vel, acc, var=0, var2=0):
+def values(method, run, vel, acc, var=0, var2=0):
     '''t = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     t = t.replace(":", ".")
     filename = str(("{}.txt".format(t)))
@@ -16,6 +16,7 @@ def values(method, vel, acc, var=0, var2=0):
     def S_S_M(stub):
         print("Calling method from client")
         request = proto_pb2.clientRequest(methodID=method,
+                                   run=run,
                                    velocity=vel,
                                    acceleration=acc,
                                    variable1=var,
@@ -33,4 +34,4 @@ def values(method, vel, acc, var=0, var2=0):
 
 
 if __name__ == '__main__':
-    values(1, 5, 3, 4, 5)
+    values(1, True, 5, 3, 4, 5)
