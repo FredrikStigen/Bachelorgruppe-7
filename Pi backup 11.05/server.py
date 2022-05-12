@@ -7,21 +7,6 @@ import PID
 
 SERVER_ADDRESS = 'localhost:9999'
 PIADDRESS = '169.254.131.27:9999'
-############################
-encoderFeedback = 0
-#Posisjon på prototyp og hvilken retning den kjører
-clockwise = True
-############################
-
-
-
-
-
-
-
-
-
-
 
 
 def thread_func(vel, acc, pos):

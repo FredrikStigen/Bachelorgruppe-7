@@ -22,12 +22,11 @@ def changeSense(channel):
 		if counter <= 0:
 			counter = 400
 		counter -= 1
-	#print(round(counter*0.9, 2))
+	print(round(counter*0.9, 2))
 
-
-GPIO.add_event_detect(sigA, GPIO.FALLING, callback=changeSense)
-
-
-while True:
-	time.sleep(0)
-	#GPIO.wait_for_edge(sigB, GPIO.FALLING)
+try:
+	GPIO.add_event_detect(sigA, GPIO.RISING, callback=changeSense)
+	while True:
+		time.sleep(0)
+except KeyboardInterrupt:
+	print("Stopped")

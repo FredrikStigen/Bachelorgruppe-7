@@ -5,7 +5,7 @@ import time
 
 
 SERVER_ADDRESS = 'localhost:9999'
-PIADDRESS = '169.254.131.27:9999'
+PIADDRESS = '169.254.165.33:9999'
 
 def values(method, run, vel, acc, var=0, var2=0):
     '''t = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -27,11 +27,11 @@ def values(method, run, vel, acc, var=0, var2=0):
 
 
 
-    with grpc.insecure_channel(PIADDRESS) as channel:
+    with grpc.insecure_channel(SERVER_ADDRESS) as channel:
         stub = proto_pb2_grpc.streamStub(channel)
         S_S_M(stub)
 
 
 
-'''if __name__ == '__main__':
-    values(1, True, 5, 3, 4, 5)'''
+if __name__ == '__main__':
+    values(1, True, 5, 3, 4, 5)

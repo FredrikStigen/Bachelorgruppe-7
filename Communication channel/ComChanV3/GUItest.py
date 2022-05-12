@@ -41,19 +41,33 @@ window = sg.Window("OMS Control GUI", layout, resizable=True)
 while True:
     event, values = window.read()
     if event in (sg.WIN_CLOSED, 'Cancel'):
-        client.values(int(0), False, int(0), int(0), int(0))
+        #client.values(int(0), False, int(0), int(0), int(0))
         #print("Cancelled")
         break
     elif event in "Stop":
-        client.values(int(0), False, int(0), int(0), int(0))
-        #print("Stopped")
+        #client.values(int(0), False, int(0), int(0), int(0))
+        print("Stop")
     elif event in "Run":
-        #print("Velocity: {}  --  Acceleartion: {}".format(values[2], values[3]))
         if values[5]:
-            #print("Rotating to pos: {}".format(values[6]))
-            client.values(int(123), True, int(values[2]), int(values[3]), int(values[6]))
-        elif values[7]:
-            client.values(int(456), True, int(values[2]), int(values[3]), int(values[8]), int(values[9]))
+            #client.values(int(123), True, int(values[2]), int(values[3]), int(values[6]))
+            print(123, True, values[2], values[3], values[6])
+            if int(values[2]) > 120:
+                values[2] = 120
+            if int(values[2]) < 0:
+                values[2] = 0
+
+            if int(values[3]) > 6:
+                values[3] = 6
+            if int(values[3]) < 0:
+                values[3] = 0
+
+            if int(values[6]) > 360:
+                values[6] = 360
+            if int(values[6]) < 0:
+                values[6] = 0
+            print(123, True, values[2], values[3], values[6])
+        #elif values[7]:
+            #client.values(int(456), True, int(values[2]), int(values[3]), int(values[8]), int(values[9]))
         #elif values[10]:
             #print("Rotating {} degrees, then wait for {} seconds".format(values[11], values[12]))
             #client.values(int(789), True, int(values[2]), int(values[3]), int(values[11]), int(values[12]))

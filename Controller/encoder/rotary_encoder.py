@@ -40,10 +40,10 @@ class decoder:
 
          if   gpio == self.gpioA and level == 1:
             if self.levB == 1:
-               self.callback(1)
+               self.callback(0.9)
          elif gpio == self.gpioB and level == 1:
             if self.levA == 1:
-               self.callback(-1)
+               self.callback(-0.9)
 
    def cancel(self):
       self.cbA.cancel()
@@ -53,12 +53,12 @@ encoderFeedback = 0
 
 def callback(way):
    global encoderFeedback
-   if encoderFeedback >= 400:
+   if encoderFeedback >= 360:
       encoderFeedback = 0
    elif encoderFeedback <= 0:
-      encoderFeedback = 400
+      encoderFeedback = 360
    encoderFeedback += way
-   print("pos = {}".format(round(encoderFeedback * 0.9, 3)))
+   print(encoderFeedback)
 
 if __name__ == "__main__":
    pi = pigpio.pi()

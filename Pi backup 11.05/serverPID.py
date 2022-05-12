@@ -1,18 +1,25 @@
+import grpc
+import proto_pb2
+import proto_pb2_grpc
+from concurrent import futures
+import threading
 import numpy as np
 import pigpio
 import RPi.GPIO as GPIO
 import time
-import numpy
 import Motion_Profile_AtoB_Test
+
+SERVER_ADDRESS = 'localhost:9999'
+PIADDRESS = '169.254.131.27:9999'
+runTimeBool = False
+
 ############################
 encoderFeedback = 0
 #Posisjon på prototyp og hvilken retning den kjører
 clockwise = True
 ############################
 
-###############################
-#Redfinerer retning på prototyp
-###############################
+
 def dir(theta, theta_fb):
     global clockwise
     if (theta - theta_fb + 360) % 360 <= 180:
@@ -46,7 +53,9 @@ def callback(way):
 #######################################
 #Funksjon for kjøring av PID controller
 #######################################
-def controller(vel, acc, pos, run=True):
+def controller(vel, acc, pos):
+    global runTimeBool
+
     class decoder:
         def __init__(self, pi, gpioA, gpioB, callback):
             self.pi = pi
@@ -95,7 +104,7 @@ def controller(vel, acc, pos, run=True):
     ########################
     #Oppsett av PWM signaler
     ########################
-    clockwisePWM = 12
+    clockwisePWM = 18
     counterclockwisePWM = 13
 
     freq = 1000
@@ -139,66 +148,99 @@ def controller(vel, acc, pos, run=True):
     time_start = time.time()
     printNow = time.time()
     printDelay = 0.1
-    try:
-        while run:
-            global encoderFeedback
-            theta_fb = round(encoderFeedback * 0.9, 3)
-            Ts_prev = 0
 
-            ####################################
-            #Hvor ofte posisjoner skal sendes ut
-            ####################################
-            if time.time() >= time_prev + 0.001:
-                time_prev = time.time()
-                i = round((time_prev - time_start) / T)
-                if i > len(fpos) - 1:
-                    theta = fpos[len(fpos) - 1]
-                else:
-                    theta = fpos[i]
+    while runTimeBool:
+        global encoderFeedback
+        theta_fb = round(encoderFeedback * 0.9, 3)
+        Ts_prev = 0
 
-            ##########################################
-            #Hvor ofte nye x_n verdier skal bli endret
-            ##########################################
-            if time.time() >= Ts_prev + 0.00025:
-                Ts_prev = time.time()
-                e = errorCorrection(theta, theta_fb)
-
-                x_n = (A * e) + (B * e_prev) + (C * INT_prev)
-                if theta + 0.5 >= theta_fb >= theta - 0.5:
-                    x_n = 0
-                    INT_prev = 0
-
-                    if pos == round(theta, 2):
-                        run = False
-                    #run = False ###### for å stoppe koden
-
-                INT_prev += (0.5 * (e + e_prev) * Ts)
-                e_prev = e
-
-                dir(theta, theta_fb)
-
-            if x_n > 100:
-                x_n = 100
-
-            if clockwise:
-                CW_pwm.ChangeDutyCycle(x_n)
-                CCW_pwm.ChangeDutyCycle(0)
+        ####################################
+        #Hvor ofte posisjoner skal sendes ut
+        ####################################
+        if time.time() >= time_prev + 0.001:
+            time_prev = time.time()
+            i = round((time_prev - time_start) / T)
+            if i > len(fpos) - 1:
+                theta = fpos[len(fpos) - 1]
             else:
-                CW_pwm.ChangeDutyCycle(0)
-                CCW_pwm.ChangeDutyCycle(x_n)
+                theta = fpos[i]
 
-            if time.time() >= printNow + printDelay:
-                printNow = time.time()
-                print("Theta: ", round(theta, 2), "Theta_fb: ", round(theta_fb, 2), "e: ", round(e, 2), "clockwise: ",
-                      clockwise, "x_n: ", round(x_n, 2))
+        ##########################################
+        #Hvor ofte nye x_n verdier skal bli endret
+        ##########################################
+        if time.time() >= Ts_prev + 0.00025:
+            Ts_prev = time.time()
+            e = errorCorrection(theta, theta_fb)
 
-    except KeyboardInterrupt:
-        CW_pwm.ChangeDutyCycle(0)
-        CCW_pwm.ChangeDutyCycle(0)
-        decoder.cancel()
-        pi.stop()
-        print("Stopped")
+            x_n = (A * e) + (B * e_prev) + (C * INT_prev)
+            if theta + 0.5 >= theta_fb >= theta - 0.5:
+                x_n = 0
+                INT_prev = 0
+
+                if pos == round(theta, 2):
+                    run = False
+                #run = False ###### for å stoppe koden
+
+            INT_prev += (0.5 * (e + e_prev) * Ts)
+            e_prev = e
+
+            dir(theta, theta_fb)
+
+        if x_n > 100:
+            x_n = 100
+
+        if clockwise:
+            CW_pwm.ChangeDutyCycle(x_n)
+            CCW_pwm.ChangeDutyCycle(0)
+        else:
+            CW_pwm.ChangeDutyCycle(0)
+            CCW_pwm.ChangeDutyCycle(x_n)
+
+        if time.time() >= printNow + printDelay:
+            printNow = time.time()
+            print("Theta: ", round(theta, 2), "Theta_fb: ", round(theta_fb, 2), "e: ", round(e, 2), "clockwise: ",
+                  clockwise, "x_n: ", round(x_n, 2))
+
+    CW_pwm.ChangeDutyCycle(0)
+    CCW_pwm.ChangeDutyCycle(0)
+    decoder.cancel()
+    pi.stop()
+    print("Stopped")
+
+
+class ComChan(proto_pb2_grpc.streamServicer):
+    def SM(self, request, context):
+        global runTimeBool
+        print("Method called by client")
+        PID = threading.Thread(target=controller, args=(request.velocity,
+                                                        request.acceleration,
+                                                        request.variable1))
+        if request.run:
+            runTimeBool = request.run
+            if request.methodID == 123:
+                print("Starting PID")
+                PID.start()
+        else:
+            runTimeBool = request.run
+
+        run = 4
+        data = 180
+        response = proto_pb2.serverResponse(runTime=run, eData=data)
+        return response
+
+
+def main():
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    proto_pb2_grpc.add_streamServicer_to_server(ComChan(), server)
+    server.add_insecure_port(PIADDRESS)
+
+    print("Server is running...")
+    server.start()
+    server.wait_for_termination()
 
 
 if __name__ == '__main__':
-    controller(120, 6, 180)
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("Stopped by interrupt")

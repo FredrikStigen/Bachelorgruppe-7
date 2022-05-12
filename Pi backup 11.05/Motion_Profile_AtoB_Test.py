@@ -3,12 +3,12 @@ import numpy as np
 
 fs = 1000
 
-#pos_feedback = 0 #encoder data
+pos_feedback = 0 #encoder data
 
 
-def motionProfile(vel, acc, pos, pos_feedback):
+def motionProfile(vel, acc, pos):
     global fs
-    #global pos_feedback
+    global pos_feedback
     if ((pos-pos_feedback+(2*np.pi))%(2*np.pi)<=np.pi):
         clockwise = True
     else:

@@ -1,19 +1,19 @@
-import threading
+import RPi.GPIO as GPIO
+from time import sleep
 
-vel = 1
-acc = 2
-pos = 3
+ledpin = 16  # PWM pin connected to LED
+GPIO.setwarnings(False)  # disable warnings
+GPIO.setmode(GPIO.BOARD)  # set pin numbering system
+GPIO.setup(ledpin, GPIO.OUT)
+pi_pwm = GPIO.PWM(ledpin, 1000)  # create PWM instance with frequency
+pi_pwm.start(0)  # start PWM of required Duty Cycle
+while True:
+    for duty in range(0, 101, 1):
+        pi_pwm.ChangeDutyCycle(duty)  # provide duty cycle in the range 0-100
+        sleep(0.01)
+    sleep(0.5)
 
-def test(vel, acc, pos):
-    print(vel)
-    print(acc)
-    print(pos)
-
-if __name__ == '__main__':
-    t1 = threading.Thread(target=test(5, 6, 7))
-
-    t1.start()
-
-    print("Running")
-
-    print("Done")
+    for duty in range(100, -1, -1):
+        pi_pwm.ChangeDutyCycle(duty)
+        sleep(0.01)
+    sleep(0.5)
