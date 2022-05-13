@@ -78,5 +78,5 @@ def motionProfile(vel, acc, pos, pos_feedback):
 
 
 if __name__ == '__main__':
-    a = motionProfile(2*np.pi/3, 6, -np.pi/18, 3*np.pi/2)
-    print(a)
+    a = motionProfile(2*np.pi/3, 6, 11*np.pi/6)
+    print(len(a))

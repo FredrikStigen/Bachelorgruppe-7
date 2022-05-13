@@ -20,7 +20,6 @@ clockwise = True
 ############################
 
 
-
 def dir(theta, theta_fb):
     global clockwise
     if (theta - theta_fb + 360) % 360 <= 180:
@@ -40,45 +39,35 @@ def errorCorrection(theta, theta_fb):
 
 
 #################################################
-#Callback function which is run each time an update is detected
-#on a channel from the Encoder.
+#Interrupt funksjon som øke eller minker posisjon
+#################################################
 def callback(way):
     global encoderFeedback
-    if encoderFeedback >= 360:
+    if encoderFeedback >= 400:
         encoderFeedback = 0
     elif encoderFeedback <= 0:
-        encoderFeedback = 360
+        encoderFeedback = 400
     encoderFeedback += way
 
 
 #######################################
 #Funksjon for kjøring av PID controller
 #######################################
-def controller(vel, acc, variable1, variable2, id):
-    global runTimeBool, clockwise, fpos, e
+def controller(vel, acc, pos):
+    global runTimeBool
     global encoderFeedback
 
-
     class decoder:
-        # Class constructor for the encoder, defining the Pi,
-        # encoder channel A dn B and a callback function.
         def __init__(self, pi, gpioA, gpioB, callback):
-            #Defines the object
             self.pi = pi
             self.gpioA = gpioA
             self.gpioB = gpioB
             self.callback = callback
 
-            #Defines a default level for Channel A and B
-            #This part will be used as a debouncer,
-            #to eliminate noise that might give false values
-            #from the encoder
             self.levA = 0
             self.levB = 0
             self.lastGpio = None
 
-
-            #Setup for the A and B channels as inputs and interrupts.
             self.pi.set_mode(gpioA, pigpio.INPUT)
             self.pi.set_mode(gpioA, pigpio.INPUT)
 
@@ -88,9 +77,6 @@ def controller(vel, acc, variable1, variable2, id):
             self.cbA = self.pi.callback(gpioA, pigpio.EITHER_EDGE, self._pulse)
             self.cbB = self.pi.callback(gpioB, pigpio.EITHER_EDGE, self._pulse)
 
-        #This function is responsible for calling a callback function,
-        #which is used to increase the counter for the position variable.
-        #Here we will also eliminate the noise, with the use of a debouncer
         def _pulse(self, gpio, level, tick):
             if gpio == self.gpioA:
                 self.levA = level
@@ -101,10 +87,10 @@ def controller(vel, acc, variable1, variable2, id):
                 self.lastGpio = gpio
                 if gpio == self.gpioA and level == 1:
                     if self.levB == 1:
-                        self.callback(0.9)
+                        self.callback(1)
                 elif gpio == self.gpioB and level == 1:
                     if self.levA == 1:
-                        self.callback(-0.9)
+                        self.callback(-1)
 
 
         def cancel(self):
@@ -114,35 +100,15 @@ def controller(vel, acc, variable1, variable2, id):
     #######################
     #Kjører motion profilen
     #######################
-    if id == 123:
-        fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc, np.radians(variable1),
-                                                      np.radians(encoderFeedback))
-    if id == 456:
-        fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc, np.radians(variable2),
-                                                      np.radians(variable1))
-    if id == 789:
-        print(variable1, variable2)
-        if encoderFeedback + variable1 > 360:
-            fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc,
-                                                          np.radians(encoderFeedback + variable1 - 360),
-                                                          np.radians(encoderFeedback))
-        elif encoderFeedback + variable1 < 0:
-            fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc,
-                                                          np.radians(encoderFeedback + variable1 + 360),
-                                                          np.radians(encoderFeedback))
-        else:
-            fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc,
-                                                          np.radians(encoderFeedback + variable1),
-                                                          np.radians(encoderFeedback))
-
+    fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc, np.radians(pos), np.radians(encoderFeedback))
 
     ########################
     #Oppsett av PWM signaler
     ########################
-    clockwisePWM = 22
+    clockwisePWM = 17
     counterclockwisePWM = 27
 
-    freq = 1000
+    freq = 200
 
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
@@ -160,8 +126,8 @@ def controller(vel, acc, variable1, variable2, id):
     pi = pigpio.pi()
     decoder = decoder(pi, 5, 6, callback)
 
-    Kp = 2.1 #3
-    Ki = 0.02 # 0.01
+    Kp = 3
+    Ki = 0.01
     Kd = 0.0
 
     fs = 1000
@@ -185,7 +151,7 @@ def controller(vel, acc, variable1, variable2, id):
     printDelay = 0.1
 
     while runTimeBool:
-        theta_fb = encoderFeedback
+        theta_fb = round(encoderFeedback * 0.9, 3)
         Ts_prev = 0
 
         ####################################
@@ -207,30 +173,9 @@ def controller(vel, acc, variable1, variable2, id):
             e = errorCorrection(theta, theta_fb)
 
             x_n = (A * e) + (B * e_prev) + (C * INT_prev)
-            if fpos[-1] + 0.5 >= theta_fb >= fpos[-1] - 0.5:
+            if theta + 0.5 >= theta_fb >= theta - 0.5:
                 x_n = 0
                 INT_prev = 0
-                if id == 456:
-                    fpos = np.flip(fpos)
-                    if clockwise:
-                        clockwise = False
-                    else:
-                        clockwise = True
-                elif id == 789:
-                    time.sleep(variable2)
-                    if encoderFeedback + variable1 > 360:
-                        fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc,
-                                                                      np.radians(encoderFeedback + variable1 - 360),
-                                                                      np.radians(encoderFeedback))
-                    elif encoderFeedback + variable1 < 0:
-                        fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc,
-                                                                      np.radians(encoderFeedback + variable1 + 360),
-                                                                      np.radians(encoderFeedback))
-                    else:
-                        fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc,
-                                                                      np.radians(encoderFeedback + variable1),
-                                                                      np.radians(encoderFeedback))
-
 
             INT_prev += (0.5 * (e + e_prev) * Ts)
             e_prev = e
@@ -239,8 +184,6 @@ def controller(vel, acc, variable1, variable2, id):
 
         if x_n > 100:
             x_n = 100
-        #if 55 > x_n > 1:
-            #x_n = 55
 
         if clockwise:
             CW_pwm.ChangeDutyCycle(x_n)
@@ -271,18 +214,18 @@ class ComChan(proto_pb2_grpc.streamServicer):
         print("Method called by client")
         PID = threading.Thread(target=controller, args=(request.velocity,
                                                         request.acceleration,
-                                                        request.variable1,
-                                                        request.variable2,
-                                                        request.methodID))
+                                                        request.variable1))
         if request.run:
             runTimeBool = request.run
-            PID.start()
+            if request.methodID == 123:
+                print("Starting PID")
+                PID.start()
         else:
             runTimeBool = request.run
 
         run = 4
-        data = encoderFeedback
-        response = proto_pb2.serverResponse(runTime=run, eData=round(data))
+        data = 180
+        response = proto_pb2.serverResponse(runTime=run, eData=data)
         return response
 
 

@@ -54,9 +54,9 @@ while True:
             client.values(int(123), True, int(values[2]), int(values[3]), int(values[6]))
         elif values[7]:
             client.values(int(456), True, int(values[2]), int(values[3]), int(values[8]), int(values[9]))
-        #elif values[10]:
-            #print("Rotating {} degrees, then wait for {} seconds".format(values[11], values[12]))
-            #client.values(int(789), True, int(values[2]), int(values[3]), int(values[11]), int(values[12]))
+        elif values[10]:
+            client.values(int(789), True, int(values[2]), int(values[3]), int(values[11]), int(values[12]))
+            print(values[11], values[12])
 
 
 

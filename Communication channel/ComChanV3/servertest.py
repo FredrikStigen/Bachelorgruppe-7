@@ -20,6 +20,7 @@ clockwise = True
 ############################
 
 
+
 def dir(theta, theta_fb):
     global clockwise
     if (theta - theta_fb + 360) % 360 <= 180:
@@ -43,10 +44,10 @@ def errorCorrection(theta, theta_fb):
 #on a channel from the Encoder.
 def callback(way):
     global encoderFeedback
-    if encoderFeedback >= 400:
+    if encoderFeedback >= 360:
         encoderFeedback = 0
     elif encoderFeedback <= 0:
-        encoderFeedback = 400
+        encoderFeedback = 360
     encoderFeedback += way
 
 
@@ -100,10 +101,10 @@ def controller(vel, acc, variable1, variable2, id):
                 self.lastGpio = gpio
                 if gpio == self.gpioA and level == 1:
                     if self.levB == 1:
-                        self.callback(1)
+                        self.callback(0.9)
                 elif gpio == self.gpioB and level == 1:
                     if self.levA == 1:
-                        self.callback(-1)
+                        self.callback(-0.9)
 
 
         def cancel(self):
@@ -120,14 +121,25 @@ def controller(vel, acc, variable1, variable2, id):
         fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc, np.radians(variable2),
                                                       np.radians(variable1))
     if id == 789:
-        fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc, np.radians(variable2),
-                                                      np.radians(variable1))
+        print(variable1, variable2)
+        if encoderFeedback + variable1 > 360:
+            fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc,
+                                                          np.radians(encoderFeedback + variable1 - 360),
+                                                          np.radians(encoderFeedback))
+        elif encoderFeedback + variable1 < 0:
+            fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc,
+                                                          np.radians(encoderFeedback + variable1 + 360),
+                                                          np.radians(encoderFeedback))
+        else:
+            fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc,
+                                                          np.radians(encoderFeedback + variable1),
+                                                          np.radians(encoderFeedback))
 
 
     ########################
     #Oppsett av PWM signaler
     ########################
-    clockwisePWM = 17
+    clockwisePWM = 22
     counterclockwisePWM = 27
 
     freq = 1000
@@ -148,8 +160,8 @@ def controller(vel, acc, variable1, variable2, id):
     pi = pigpio.pi()
     decoder = decoder(pi, 5, 6, callback)
 
-    Kp = 3
-    Ki = 0.01
+    Kp = 2.1 #3
+    Ki = 0.02 # 0.01
     Kd = 0.0
 
     fs = 1000
@@ -173,7 +185,7 @@ def controller(vel, acc, variable1, variable2, id):
     printDelay = 0.1
 
     while runTimeBool:
-        theta_fb = round(encoderFeedback * 0.9, 3)
+        theta_fb = encoderFeedback
         Ts_prev = 0
 
         ####################################
@@ -195,7 +207,7 @@ def controller(vel, acc, variable1, variable2, id):
             e = errorCorrection(theta, theta_fb)
 
             x_n = (A * e) + (B * e_prev) + (C * INT_prev)
-            if theta + 0.5 >= theta_fb >= theta - 0.5:
+            if fpos[-1] + 0.5 >= theta_fb >= fpos[-1] - 0.5:
                 x_n = 0
                 INT_prev = 0
                 if id == 456:
@@ -205,13 +217,14 @@ def controller(vel, acc, variable1, variable2, id):
                     else:
                         clockwise = True
                 elif id == 789:
+                    time.sleep(variable2)
                     if encoderFeedback + variable1 > 360:
                         fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc,
                                                                       np.radians(encoderFeedback + variable1 - 360),
                                                                       np.radians(encoderFeedback))
-                    elif encoderFeedback - variable1 < 0:
+                    elif encoderFeedback + variable1 < 0:
                         fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc,
-                                                                      np.radians(encoderFeedback - variable1 + 360),
+                                                                      np.radians(encoderFeedback + variable1 + 360),
                                                                       np.radians(encoderFeedback))
                     else:
                         fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc,
@@ -226,8 +239,8 @@ def controller(vel, acc, variable1, variable2, id):
 
         if x_n > 100:
             x_n = 100
-        if 55 > x_n > 10:
-            x_n = 55
+        #if 55 > x_n > 1:
+            #x_n = 55
 
         if clockwise:
             CW_pwm.ChangeDutyCycle(x_n)
@@ -269,7 +282,7 @@ class ComChan(proto_pb2_grpc.streamServicer):
 
         run = 4
         data = encoderFeedback
-        response = proto_pb2.serverResponse(runTime=run, eData=data)
+        response = proto_pb2.serverResponse(runTime=run, eData=round(data))
         return response
 
 
