@@ -1,26 +1,19 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
-fs = 1000
 
-#pos_feedback = 0 #encoder data
 
 
 def motionProfile(vel, acc, pos, pos_feedback):
-    global fs
-    #global pos_feedback
-    if ((pos-pos_feedback+(2*np.pi))%(2*np.pi)<=np.pi):
+    fs = 1000
+
+    if (pos - pos_feedback + (2 * np.pi))%(2 * np.pi) <= np.pi:
         clockwise = True
     else:
         clockwise = False
 
-    #print(clockwise)
-
     tot_dist = abs(pos - pos_feedback)
     if tot_dist > np.pi:
         tot_dist = (2*np.pi) - tot_dist
-
-    #print(tot_dist)
 
     T = 1/fs
     dacc = acc
@@ -47,20 +40,17 @@ def motionProfile(vel, acc, pos, pos_feedback):
         t_tot = t_acc + t_cons_vel + t_dacc
         t_acc2 = t_acc + t_cons_vel
 
-        # Start + size * step
-        #t1 = 0 + np.arange(round(t_acc/T)) * T
         t1 = np.arange(0.0, t_acc, T)
         t2 = np.arange((T*len(t1)), t_acc2, T)
         t3 = np.arange(T*(len(t1) + len(t2)), t_tot, T)
         t = np.hstack((t1, t2, t3))
-        #print(t1[1:-1])
 
         pos_a = 1/2 * acc * t1**2
         pos_c = (vel * (t2 - t2[0])) + pos_a[(len(pos_a)-1)] + (vel * T)
         pos_d = (vel * (t3 - t3[0])) + (1/2 * -acc * (t3 - t3[0])**2) + pos_c[(len(pos_c)-1)] + (vel * T)
         fpos = np.hstack((pos_a, pos_c, pos_d))
 
-    if clockwise == False:
+    if not clockwise:
         fpos = np.flip(fpos) - tot_dist + pos_feedback
         for i in range(len(fpos)):
             if fpos[i] < 0:
@@ -72,7 +62,6 @@ def motionProfile(vel, acc, pos, pos_feedback):
                 fpos[i] -= 2*np.pi
 
     fpos *= 180/np.pi
-    #print(len(fpos))
 
     return fpos
 

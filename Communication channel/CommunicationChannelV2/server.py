@@ -25,7 +25,6 @@ class CCServer(func_pb2_grpc.ComChanServicer):
                 eData = 445
                 response = func_pb2.Response(connVer=counter,
                                              encoderData=eData)
-                time.sleep(0.25)
                 yield response
         return responseGenerator()
 

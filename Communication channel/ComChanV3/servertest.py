@@ -13,13 +13,10 @@ SERVER_ADDRESS = 'localhost:9999'
 PIADDRESS = '169.254.131.27:9999'
 runTimeBool = False
 
-############################
 encoderFeedback = 0
-#Posisjon på prototyp og hvilken retning den kjører
 clockwise = True
-############################
-
-
+fposV = []      #
+thetaV = []     #Lists for data logging
 
 def dir(theta, theta_fb):
     global clockwise
@@ -30,7 +27,7 @@ def dir(theta, theta_fb):
 
 
 ########################################
-#Korrigerer error for på finne minste vei
+#Corrects the error to find the shortest distance
 #########################################
 def errorCorrection(theta, theta_fb):
     e = theta - theta_fb
@@ -52,11 +49,13 @@ def callback(way):
 
 
 #######################################
-#Funksjon for kjøring av PID controller
+#Function that runs the PID controller
 #######################################
 def controller(vel, acc, variable1, variable2, id):
     global runTimeBool, clockwise, fpos, e
     global encoderFeedback
+    global fposV
+    global thetaV
 
 
     class decoder:
@@ -139,7 +138,7 @@ def controller(vel, acc, variable1, variable2, id):
     ########################
     #Oppsett av PWM signaler
     ########################
-    clockwisePWM = 22
+    clockwisePWM = 26
     counterclockwisePWM = 27
 
     freq = 1000
@@ -154,43 +153,41 @@ def controller(vel, acc, variable1, variable2, id):
     CW_pwm.start(0)
     CCW_pwm.start(0)
 
-    #######################
-    #Definerer Pi og object
-    #######################
     pi = pigpio.pi()
     decoder = decoder(pi, 5, 6, callback)
 
-    Kp = 2.1 #3
-    Ki = 0.02 # 0.01
-    Kd = 0.0
-
-    fs = 1000
-    Ts = 1/fs
-
-    A = Kp + (0.5 * Ki * Ts) + (Kd / Ts)
-    B = (0.5 * Ki * Ts) - (Kd / Ts)
-    C = Ki
-
-    INT_prev = 0.0
-
-    e_prev = 0.0
-    x_n = 0.0
-    theta = 90.0
-    T = 1/fs
-
+    #########################################
+    Kp = 25                                 #3
+    Ki = 1                                  #0.01
+    Kd = 3                                  #
+                                            #
+    fs = 4000                               #
+    Ts = 1/fs                               #
+                                            # Control inputs for the PID controller
+    A = Kp + (0.5 * Ki * Ts) + (Kd / Ts)    #
+    B = (0.5 * Ki * Ts) - (Kd / Ts)         #
+    C = Ki                                  #
+                                            #
+    INT_prev = 0.0                          #
+                                            #
+    e_prev = 0.0                            #
+    x_n = 0.0                               #
+    theta = 90.0                            #
+    T = 1/fs                                #
+#############################################
 
     time_prev = time.time()
     time_start = time.time()
     printNow = time.time()
     printDelay = 0.1
 
+    #Runtime for the PID controller
     while runTimeBool:
         theta_fb = encoderFeedback
         Ts_prev = 0
 
         ####################################
-        #Hvor ofte posisjoner skal sendes ut
-        ####################################
+        #How often a new theta value shall be changed
         if time.time() >= time_prev + 0.001:
             time_prev = time.time()
             i = round((time_prev - time_start) / T)
@@ -198,25 +195,27 @@ def controller(vel, acc, variable1, variable2, id):
                 theta = fpos[len(fpos) - 1]
             else:
                 theta = fpos[i]
+            fposV.append(theta)
+            thetaV.append(theta_fb)
 
         ##########################################
-        #Hvor ofte nye x_n verdier skal bli endret
+        #How often a new x_n value shall be sent adjusted
         ##########################################
         if time.time() >= Ts_prev + 0.00025:
             Ts_prev = time.time()
-            e = errorCorrection(theta, theta_fb)
+            e = errorCorrection(theta, theta_fb)        #Corrects the error to find the shortest distance
 
             x_n = (A * e) + (B * e_prev) + (C * INT_prev)
             if fpos[-1] + 0.5 >= theta_fb >= fpos[-1] - 0.5:
                 x_n = 0
                 INT_prev = 0
-                if id == 456:
-                    fpos = np.flip(fpos)
+                if id == 456:                   #Flips the motion profile when the prototype is set to rotate
+                    fpos = np.flip(fpos)        #between two positions
                     if clockwise:
                         clockwise = False
                     else:
                         clockwise = True
-                elif id == 789:
+                elif id == 789:                 #What motion profile that will be generated for this specific operation
                     time.sleep(variable2)
                     if encoderFeedback + variable1 > 360:
                         fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc,
@@ -235,19 +234,20 @@ def controller(vel, acc, variable1, variable2, id):
             INT_prev += (0.5 * (e + e_prev) * Ts)
             e_prev = e
 
-            dir(theta, theta_fb)
+            dir(theta, theta_fb)        #Set the correct direction
 
-        if x_n > 100:
+        if x_n > 100:       #If x_n value goes above 100 it will be defined as 100
             x_n = 100
-        #if 55 > x_n > 1:
-            #x_n = 55
+
+        if x_n < 0:         #If x_n value goes below 0 it will be defined as 0
+            x_n = 0
 
         if clockwise:
-            CW_pwm.ChangeDutyCycle(x_n)
-            CCW_pwm.ChangeDutyCycle(0)
+            CW_pwm.ChangeDutyCycle(x_n)         #x_n value is sent to clockwise PWM port
+            CCW_pwm.ChangeDutyCycle(0)          #0 to counterclockwise PWM port
         else:
-            CW_pwm.ChangeDutyCycle(0)
-            CCW_pwm.ChangeDutyCycle(x_n)
+            CW_pwm.ChangeDutyCycle(0)           #0 to clockwise PWm port
+            CCW_pwm.ChangeDutyCycle(x_n)        #x-N value is sent to clockwise PWM port
 
         ###############################################
         #Print of different values to analyze and debug
@@ -257,14 +257,23 @@ def controller(vel, acc, variable1, variable2, id):
                   clockwise, "x_n: ", round(x_n, 2))
 
     #############################################
-    #Stop the PWM and the Pi after code interrupt
+    #Stop the PWM and the Pi after code is stopped
     CW_pwm.ChangeDutyCycle(0)
     CCW_pwm.ChangeDutyCycle(0)
     decoder.cancel()
     pi.stop()
+
+    #Simple code to log data from encoder feedback and position from motions profile.
+    with open('fposlog.txt', 'r+') as filehandler:
+        for listitem in fposV:
+            filehandler.write('%s\n' % listitem)
+    with open('thetafblog.txt', 'r+') as filehandler:
+        for listitem in thetaV:
+            filehandler.write('%s\n' % listitem)
     print("Stopped")
 
-
+#Class for the communication channel, with the implementation of a thread that starts
+#the PID controller
 class ComChan(proto_pb2_grpc.streamServicer):
     def SM(self, request, context):
         global runTimeBool

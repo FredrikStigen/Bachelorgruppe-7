@@ -5,22 +5,18 @@ import time
 
 
 SERVER_ADDRESS = 'localhost:9999'
-PIADDRESS = '169.254.131.27:9999'
+PIADDRESS = '169.254.165.33:9999'
 
+#Callable client, connection from the GUI
 def values(method, run, vel, acc, var=0, var2=0):
-    '''t = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    t = t.replace(":", ".")
-    filename = str(("{}.txt".format(t)))
-    filepath = "C:/Users/Stigen/Documents/GitHub/Python/Bachelor 2022/CommunicationChannelV2/logs/"'''
-
     def S_S_M(stub):
         print("Calling method from client")
         request = proto_pb2.clientRequest(methodID=method,
-                                   run=run,
-                                   velocity=vel,
-                                   acceleration=acc,
-                                   variable1=var,
-                                   variable2=var2)
+                                          run=run,
+                                          velocity=vel,
+                                          acceleration=acc,
+                                          variable1=var,
+                                          variable2=var2)
 
         response = stub.SM(request)
         print(response)

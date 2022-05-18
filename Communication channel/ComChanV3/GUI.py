@@ -1,29 +1,28 @@
 import PySimpleGUI as sg
-import os
 import client
 
 sg.theme('Dark2')
 layout =    [[sg.VPush()],
 
-             [sg.Push(), sg.Image("pictures/logo2.png", size=(75, 75)), sg.Text("Control Panel", font=(any, 20)),
+             [sg.Push(), sg.Image("pictures/OMS3.png", size=(75, 75)), sg.Text("Control Panel", font=(any, 20)),
               sg.Push()],
 
             [sg.HorizontalSeparator()],
 
-            [sg.Push(), sg.Text("Velocity:"), sg.InputText(size=(5, 5), default_text="120", tooltip="Degress"),
+            [sg.Push(), sg.Text("Velocity:"), sg.InputText(size=(5, 5), default_text="120", tooltip="Degrees"),
              sg.Text("Acceleration:"), sg.InputText(size=(5, 5), default_text="6", tooltip="Radians Squared"), sg.Push()],
              [sg.Push()],
 
             [sg.HorizontalSeparator()],
             [sg.Push(), sg.Radio(text="Rotate to position:                        ", group_id=1
-                                 , default=True), sg.InputText(size=(5, 5), default_text="180", tooltip="Degress"), sg.Push()],
+                                 , default=True), sg.InputText(size=(5, 5), default_text="180", tooltip="Degrees"), sg.Push()],
 
             [sg.Push(), sg.Radio(text="Rotate between:", group_id=1, default=False), sg.InputText(size=(5, 5),
-                                                                                                 default_text="0", tooltip="Degress"),
-             sg.Text("  <->    "), sg.InputText(size=(5, 5), default_text="180", tooltip="Degress"), sg.Push()],
+                                                                                                 default_text="0", tooltip="Degrees"),
+             sg.Text("  <->    "), sg.InputText(size=(5, 5), default_text="180", tooltip="Degrees"), sg.Push()],
 
             [sg.Push(), sg.Radio(text="Rotate with:      ", group_id=1, default=False), sg.InputText(size=(5, 5),
-                                                                                                    default_text="90", tooltip="Degress"),
+                                                                                                    default_text="90", tooltip="Degrees"),
              sg.Text(" delay: "), sg.InputText(size=(5, 5), default_text="2", tooltip="Seconds"), sg.Push()],
 
             [sg.HorizontalSeparator()],
@@ -42,15 +41,11 @@ while True:
     event, values = window.read()
     if event in (sg.WIN_CLOSED, 'Cancel'):
         client.values(int(0), False, int(0), int(0), int(0))
-        #print("Cancelled")
         break
     elif event in "Stop":
         client.values(int(0), False, int(0), int(0), int(0))
-        #print("Stopped")
     elif event in "Run":
-        #print("Velocity: {}  --  Acceleartion: {}".format(values[2], values[3]))
         if values[5]:
-            #print("Rotating to pos: {}".format(values[6]))
             client.values(int(123), True, int(values[2]), int(values[3]), int(values[6]))
         elif values[7]:
             client.values(int(456), True, int(values[2]), int(values[3]), int(values[8]), int(values[9]))

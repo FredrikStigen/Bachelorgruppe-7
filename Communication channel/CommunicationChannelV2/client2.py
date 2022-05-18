@@ -33,6 +33,8 @@ def values(method, runtime, vel, acc, var=0, var2=0):
                 print("1 sec passed")
                 loggingTest.x(response.encoderData, filepath, filename)
             print("Session time: {}, expected runtime: {}".format(response.connVer, runtime))
+            print("Connection verification: {}".format(response.connVer))
+            print("System position: {}".format(response.encoderData))
         print("Methode complete")
 
 

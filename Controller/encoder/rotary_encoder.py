@@ -28,8 +28,6 @@ class decoder:
       self.cbB = self.pi.callback(gpioB, pigpio.EITHER_EDGE, self._pulse)
 
    def _pulse(self, gpio, level, tick):
-
-
       if gpio == self.gpioA:
          self.levA = level
       else:

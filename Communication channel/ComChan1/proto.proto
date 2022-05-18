@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+message Request {
+  string message = 1;
+}
+
+message Response {
+  string message = 1;
+}
+
+service baseService {
+  rpc exchange (Request) returns (Response);
+}
+
+//python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. proto.proto
