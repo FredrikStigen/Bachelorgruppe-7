@@ -20,8 +20,6 @@ for j in range(len(fb)):
     fb[j] = round(float(fb[j]), 2)
     if fb[j] > 200:
         fb[j] = 0
-print(fpos)
-print(fb)
 plt.plot(fb, 'g-', fpos, 'r-')
 plt.xlabel('Points')
 plt.ylabel('Degrees')

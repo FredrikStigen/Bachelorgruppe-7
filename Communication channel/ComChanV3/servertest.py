@@ -195,8 +195,8 @@ def controller(vel, acc, variable1, variable2, id):
                 theta = fpos[len(fpos) - 1]
             else:
                 theta = fpos[i]
-            fposV.append(theta)
-            thetaV.append(theta_fb)
+            fposV.append(round(theta, 3))
+            thetaV.append(round(theta_fb, 3))
 
         ##########################################
         #How often a new x_n value shall be sent adjusted
@@ -264,10 +264,10 @@ def controller(vel, acc, variable1, variable2, id):
     pi.stop()
 
     #Simple code to log data from encoder feedback and position from motions profile.
-    with open('fposlog.txt', 'r+') as filehandler:
+    with open('fposlog.txt', 'w') as filehandler:
         for listitem in fposV:
             filehandler.write('%s\n' % listitem)
-    with open('thetafblog.txt', 'r+') as filehandler:
+    with open('thetafblog.txt', 'w') as filehandler:
         for listitem in thetaV:
             filehandler.write('%s\n' % listitem)
     print("Stopped")

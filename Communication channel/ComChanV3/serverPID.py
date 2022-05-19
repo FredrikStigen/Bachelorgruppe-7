@@ -138,10 +138,10 @@ def controller(vel, acc, variable1, variable2, id):
     ########################
     #Oppsett av PWM signaler
     ########################
-    clockwisePWM = 26
+    clockwisePWM = 17
     counterclockwisePWM = 27
 
-    freq = 40
+    freq = 80
 
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
@@ -158,7 +158,7 @@ def controller(vel, acc, variable1, variable2, id):
 
     #########################################
     Kp = 8                                 #3
-    Ki = 0.001                                  #0.01
+    Ki = 0.01                                  #0.01
     Kd = 0                                  #
                                             #
     fs = 4000                               #
@@ -181,6 +181,9 @@ def controller(vel, acc, variable1, variable2, id):
     printNow = time.time()
     printDelay = 0.1
 
+    timerStart = time.time()
+
+    p = 0
     #Runtime for the PID controller
     while runTimeBool:
         theta_fb = encoderFeedback
@@ -190,18 +193,18 @@ def controller(vel, acc, variable1, variable2, id):
         #How often a new theta value shall be changed
         if time.time() >= time_prev + 0.001:
             time_prev = time.time()
-            i = round((time_prev - time_start) / T)
-            if i > len(fpos) - 1:
+            if p > len(fpos) - 1:
                 theta = fpos[len(fpos) - 1]
             else:
-                theta = fpos[i]
-            fposV.append(theta)
-            thetaV.append(theta_fb)
+                theta = fpos[p]
+            p += 1
+            fposV.append(round(theta, 3))
+            thetaV.append(round(theta_fb, 3))
 
         ##########################################
         #How often a new x_n value shall be sent adjusted
         ##########################################
-        if time.time() >= Ts_prev + 0.05:
+        if time.time() >= Ts_prev + 0.002:
             Ts_prev = time.time()
             e = errorCorrection(theta, theta_fb)        #Corrects the error to find the shortest distance
 
@@ -246,8 +249,8 @@ def controller(vel, acc, variable1, variable2, id):
             x_n = 10
 
         if clockwise:
-            CW_pwm.ChangeDutyCycle(x_n)         #x_n value is sent to clockwise PWM port
             CCW_pwm.ChangeDutyCycle(0)          #0 to counterclockwise PWM port
+            CW_pwm.ChangeDutyCycle(x_n)         #x_n value is sent to clockwise PWM port
         else:
             CW_pwm.ChangeDutyCycle(0)           #0 to clockwise PWm port
             CCW_pwm.ChangeDutyCycle(x_n)        #x-N value is sent to clockwise PWM port
@@ -266,14 +269,17 @@ def controller(vel, acc, variable1, variable2, id):
     decoder.cancel()
     pi.stop()
 
+
     #Simple code to log data from encoder feedback and position from motions profile.
-    with open('fposlog.txt', 'r+') as filehandler:
+    with open('fposlog.txt', 'w') as filehandler:
         for listitem in fposV:
             filehandler.write('%s\n' % listitem)
-    with open('thetafblog.txt', 'r+') as filehandler:
+    with open('thetafblog.txt', 'w') as filehandler:
         for listitem in thetaV:
             filehandler.write('%s\n' % listitem)
     print("Stopped")
+    timerStop = time.time()
+    print("Seconds elapsed: {}".format(round(timerStop - timerStart, 2)))
 
 #Class for the communication channel, with the implementation of a thread that starts
 #the PID controller
