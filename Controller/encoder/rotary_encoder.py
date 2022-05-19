@@ -1,71 +1,19 @@
-import pigpio
 import time
+import RPi.GPIO as GPIO
+from encoder import Encoder
 
+def valueChanged(value, direction):
+    print("* New value: {}, Direction: {}".format(value, direction))
 
-class decoder:
+GPIO.setmode(GPIO.BCM)
 
-   """Class to decode mechanical rotary encoder pulses."""
+e1 = Encoder(5, 6, valueChanged)
 
-   def __init__(self, pi, gpioA, gpioB, callback):
+try:
+    while True:
+        time.sleep(5)
+        print("Value is {}".format(e1.getValue()))
+except KeyboardInterrupt:
+    pass
 
-      self.pi = pi
-      self.gpioA = gpioA
-      self.gpioB = gpioB
-      self.callback = callback
-
-      self.levA = 0
-      self.levB = 0
-
-      self.lastGpio = None
-
-      self.pi.set_mode(gpioA, pigpio.INPUT)
-      self.pi.set_mode(gpioB, pigpio.INPUT)
-
-      self.pi.set_pull_up_down(gpioA, pigpio.PUD_UP)
-      self.pi.set_pull_up_down(gpioB, pigpio.PUD_UP)
-
-      self.cbA = self.pi.callback(gpioA, pigpio.EITHER_EDGE, self._pulse)
-      self.cbB = self.pi.callback(gpioB, pigpio.EITHER_EDGE, self._pulse)
-
-   def _pulse(self, gpio, level, tick):
-      if gpio == self.gpioA:
-         self.levA = level
-      else:
-         self.levB = level;
-
-      if gpio != self.lastGpio: # debounce
-         self.lastGpio = gpio
-
-         if   gpio == self.gpioA and level == 1:
-            if self.levB == 1:
-               self.callback(0.9)
-         elif gpio == self.gpioB and level == 1:
-            if self.levA == 1:
-               self.callback(-0.9)
-
-   def cancel(self):
-      self.cbA.cancel()
-      self.cbB.cancel()
-
-encoderFeedback = 0
-
-def callback(way):
-   global encoderFeedback
-   if encoderFeedback >= 360:
-      encoderFeedback = 0
-   elif encoderFeedback <= 0:
-      encoderFeedback = 360
-   encoderFeedback += way
-   print(encoderFeedback)
-
-if __name__ == "__main__":
-   pi = pigpio.pi()
-
-   decoder = decoder(pi, 5, 6, callback)
-
-   time.sleep(300)
-
-   decoder.cancel()
-
-   pi.stop()
-
+GPIO.cleanup()

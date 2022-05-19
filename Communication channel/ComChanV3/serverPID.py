@@ -41,11 +41,12 @@ def errorCorrection(theta, theta_fb):
 #on a channel from the Encoder.
 def callback(way):
     global encoderFeedback
-    if encoderFeedback >= 360:
-        encoderFeedback = 0
-    elif encoderFeedback <= 0:
-        encoderFeedback = 360
     encoderFeedback += way
+    if encoderFeedback >= 360:
+        encoderFeedback = encoderFeedback - 360
+    elif encoderFeedback < -0.001:
+        encoderFeedback = encoderFeedback + 360
+
 
 
 #######################################
@@ -141,7 +142,7 @@ def controller(vel, acc, variable1, variable2, id):
     clockwisePWM = 17
     counterclockwisePWM = 27
 
-    freq = 80
+    freq = 40
 
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
@@ -157,8 +158,8 @@ def controller(vel, acc, variable1, variable2, id):
     decoder = decoder(pi, 5, 6, callback)
 
     #########################################
-    Kp = 8                                 #3
-    Ki = 0.01                                  #0.01
+    Kp = 10.75                                 #3
+    Ki = 0.1                                  #0.01
     Kd = 0                                  #
                                             #
     fs = 4000                               #
@@ -204,7 +205,7 @@ def controller(vel, acc, variable1, variable2, id):
         ##########################################
         #How often a new x_n value shall be sent adjusted
         ##########################################
-        if time.time() >= Ts_prev + 0.002:
+        if time.time() >= Ts_prev + 0.05:
             Ts_prev = time.time()
             e = errorCorrection(theta, theta_fb)        #Corrects the error to find the shortest distance
 
@@ -219,6 +220,13 @@ def controller(vel, acc, variable1, variable2, id):
                     else:
                         clockwise = True
                 elif id == 789:                 #What motion profile that will be generated for this specific operation
+                    CCW_pwm.ChangeDutyCycle(0)  # 0 to counterclockwise PWM port
+                    CW_pwm.ChangeDutyCycle(0)
+                    if time.time() >= printNow + printDelay:
+                        printNow = time.time()
+                        print("Theta: ", round(theta, 2), "Theta_fb: ", round(theta_fb, 2), "e: ", round(e, 2),
+                              "clockwise: ",
+                              clockwise, "x_n: ", round(x_n, 2))
                     time.sleep(variable2)
                     if encoderFeedback + variable1 > 360:
                         fpos = Motion_Profile_AtoB_Test.motionProfile(np.radians(vel), acc,
