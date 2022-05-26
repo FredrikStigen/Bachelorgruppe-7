@@ -48,7 +48,6 @@ def callback(way):
         encoderFeedback = encoderFeedback + 360
 
 
-
 #######################################
 #Function that runs the PID controller
 #######################################
@@ -288,6 +287,7 @@ def controller(vel, acc, variable1, variable2, id):
     print("Stopped")
     timerStop = time.time()
     print("Seconds elapsed: {}".format(round(timerStop - timerStart, 2)))
+
 
 #Class for the communication channel, with the implementation of a thread that starts
 #the PID controller

@@ -14,7 +14,7 @@ def values(method, runtime, vel, acc, var=0, var2=0):
     t = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     t = t.replace(":", ".")
     filename = str(("{}.txt".format(t)))
-    filepath = "C:/Users/Stigen/Documents/GitHub/Python/Bachelor 2022/CommunicationChannelV2/logs/"
+    filepath = "CommunicationChannelV2/logs/"
 
     def S_S_M(stub):
         print("Calling method from client")
